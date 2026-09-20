@@ -26,7 +26,7 @@ or whatever else is already listening on 443.
 ```kotlin
 // build.gradle.kts of your service
 dependencies {
-    developmentOnly("me.raddatz:local-proxy-spring-boot-starter:0.3")
+    developmentOnly("me.raddatz:local-proxy-spring-boot-starter:0.4")
 }
 ```
 
