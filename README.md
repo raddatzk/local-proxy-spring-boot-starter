@@ -29,13 +29,14 @@ or whatever else is already listening on 443.
 ```kotlin
 // build.gradle.kts of your service
 dependencies {
-    developmentOnly("me.raddatz:local-proxy-spring-boot-starter:0.4")
+    developmentOnly("me.raddatz:local-proxy-spring-boot-starter:<version>")
 }
 ```
 
 Released to Maven Central, so `mavenCentral()` is all the repository configuration you need.
-Versions are `<major>.<commits on master>`, so they only ever count upwards — the newest one is on
-the [releases page](https://github.com/raddatzk/local-proxy-spring-boot-starter/releases). The same
+Versions are `<major>.<commits on master>`, so they only ever count upwards — the current one is in
+the badge above, and every one of them is on the
+[releases page](https://github.com/raddatzk/local-proxy-spring-boot-starter/releases). The same
 artifact is mirrored to GitHub Packages; see [RELEASING.md](RELEASING.md) to consume it from there.
 
 `developmentOnly` keeps it off the runtime classpath of the built jar — the starter can never
