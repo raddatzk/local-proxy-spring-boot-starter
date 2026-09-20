@@ -1,0 +1,106 @@
+name: Release
+
+# Run it by hand for every release: Actions -> Release -> Run workflow. The
+# version is <major>.<commits on master>, with the major from majorVersion in
+# gradle.properties, so every new state of master is a new, higher version on
+# its own and no version has to be bumped by hand.
+#
+# After a successful publish the tag job marks the commit as v<version>.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # packages: write is what lets GITHUB_TOKEN upload to GitHub Packages.
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      # The whole history: the version counts the commits.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Work out the version
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          major=$(sed -n 's/^majorVersion=\(.*\)$/\1/p' gradle.properties | head -1)
+          if [ -z "$major" ]; then
+            echo "::error::No majorVersion found in gradle.properties."
+            exit 1
+          fi
+
+          # A shallow clone would count one commit and publish 0.1 forever.
+          if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
+            echo "::error::The checkout is shallow; the version needs the full history (fetch-depth: 0)."
+            exit 1
+          fi
+          version="$major.$(git rev-list --count HEAD)"
+
+          # Maven Central refuses a version that already exists, and it cannot
+          # be taken back. Two runs on the same commit would try exactly that,
+          # so say so here rather than half-way through the upload.
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v$version" > /dev/null 2>&1; then
+            echo "::error::v$version is already released. Commit something before releasing again."
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Publishing $version"
+
+      # Both registries in one Gradle run. Central first: it cannot be taken
+      # back, while a failed GitHub Packages upload can simply be repeated.
+      - name: Publish
+        run: >
+          ./gradlew -PreleaseVersion="$VERSION" --no-configuration-cache
+          publishAndReleaseToMavenCentral
+          publishMavenPublicationToGitHubPackagesRepository
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  tag:
+    # Marks the commit that was published, so git shows what shipped when. A
+    # job of its own: only these few lines hold a token that can write to the
+    # repository, not the job holding the signing key and the Central token.
+    # A tag created with this token starts no workflow.
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Tag the released commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: v${{ needs.publish.outputs.version }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA" > /dev/null
+          echo "Tagged $GITHUB_SHA as $TAG"

@@ -1,4 +1,4 @@
-package dev.localproxy.spring
+package me.raddatz.localproxy.spring
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty

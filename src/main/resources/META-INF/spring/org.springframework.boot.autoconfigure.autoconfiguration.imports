@@ -1,1 +1,1 @@
-dev.localproxy.spring.LocalProxyAutoConfiguration
+me.raddatz.localproxy.spring.LocalProxyAutoConfiguration

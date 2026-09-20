@@ -6,7 +6,7 @@ Add the dependency, start the app, and it is reachable at `https://<app-name>.lo
 The port is whatever the OS handed out — you never see it and never type it.
 
 ```
-2026-09-20 11:42:07  INFO  d.l.s.LocalProxyRegistrar : local-proxy: https://order-service.localhost -> 127.0.0.1:54312
+2026-09-20 11:42:07  INFO  m.r.l.s.LocalProxyRegistrar : local-proxy: https://order-service.localhost -> 127.0.0.1:54312
 ```
 
 ## How it works
@@ -26,9 +26,14 @@ or whatever else is already listening on 443.
 ```kotlin
 // build.gradle.kts of your service
 dependencies {
-    developmentOnly("dev.localproxy:local-proxy-spring-boot-starter:0.1.0")
+    developmentOnly("me.raddatz:local-proxy-spring-boot-starter:0.3")
 }
 ```
+
+Released to Maven Central, so `mavenCentral()` is all the repository configuration you need.
+Versions are `<major>.<commits on master>`, so they only ever count upwards — the newest one is on
+the [releases page](https://github.com/raddatzk/local-proxy-spring-boot-starter/releases). The same
+artifact is mirrored to GitHub Packages; see [RELEASING.md](RELEASING.md) to consume it from there.
 
 `developmentOnly` keeps it off the runtime classpath of the built jar — the starter can never
 run in production, regardless of configuration.
@@ -111,6 +116,7 @@ application starts normally. Nothing throws.
 
 ## Build
 
-Requires JDK 17+. `./gradlew build` — Kotlin 2.1, Spring Boot 3.5.
+`./gradlew build` — Kotlin 2.2, Spring Boot 3.5, JDK 21 toolchain.
 
-Change `group` in `build.gradle.kts` to something you own (`io.github.<user>`) before publishing.
+Group and major version live in `gradle.properties`; releases are numbered
+`<major>.<commits on master>` by the release workflow. See [RELEASING.md](RELEASING.md).

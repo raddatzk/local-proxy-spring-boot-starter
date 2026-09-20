@@ -1,6 +1,6 @@
-package dev.localproxy.spring
+package me.raddatz.localproxy.spring
 
-import dev.localproxy.spring.LocalProxyProperties.Scheme
+import me.raddatz.localproxy.spring.LocalProxyProperties.Scheme
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.DisposableBean
 import org.springframework.boot.web.context.WebServerInitializedEvent

@@ -1,4 +1,4 @@
-package dev.localproxy.spring
+package me.raddatz.localproxy.spring
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.autoconfigure.AutoConfigurations
