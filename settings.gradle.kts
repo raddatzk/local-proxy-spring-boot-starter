@@ -1,0 +1,1 @@
+rootProject.name = "local-proxy-spring-boot-starter"

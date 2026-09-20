@@ -1,0 +1,44 @@
+{
+  "properties": [
+    {
+      "name": "local.proxy.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether to register this application with a local Caddy proxy on startup.",
+      "defaultValue": true
+    },
+    {
+      "name": "local.proxy.host",
+      "type": "java.lang.String",
+      "description": "Hostname to register. Defaults to <spring.application.name>.<local.proxy.tld>."
+    },
+    {
+      "name": "local.proxy.tld",
+      "type": "java.lang.String",
+      "description": "TLD used when local.proxy.host is not set.",
+      "defaultValue": "localhost"
+    },
+    {
+      "name": "local.proxy.timeout",
+      "type": "java.time.Duration",
+      "description": "Timeout for calls to the Caddy admin API.",
+      "defaultValue": "2s"
+    },
+    {
+      "name": "local.proxy.caddy.admin-url",
+      "type": "java.net.URI",
+      "description": "Caddy admin API endpoint.",
+      "defaultValue": "http://localhost:2019"
+    },
+    {
+      "name": "local.proxy.schemes",
+      "type": "java.util.Set<dev.localproxy.spring.LocalProxyProperties.Scheme>",
+      "description": "Which Caddy listeners to register with: https, http, or both.",
+      "defaultValue": ["http", "https"]
+    },
+    {
+      "name": "local.proxy.caddy.servers",
+      "type": "java.util.Map<dev.localproxy.spring.LocalProxyProperties.Scheme,java.lang.String>",
+      "description": "Server keys in Caddy's config per scheme. Auto-discovered when unset."
+    }
+  ]
+}
