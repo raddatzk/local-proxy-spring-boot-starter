@@ -1,5 +1,8 @@
 # local-proxy-spring-boot-starter
 
+[![Maven Central](https://img.shields.io/maven-central/v/me.raddatz/local-proxy-spring-boot-starter?label=Maven%20Central)](https://central.sonatype.com/artifact/me.raddatz/local-proxy-spring-boot-starter)
+[![CI](https://github.com/raddatzk/local-proxy-spring-boot-starter/actions/workflows/ci.yml/badge.svg)](https://github.com/raddatzk/local-proxy-spring-boot-starter/actions/workflows/ci.yml)
+
 Stop looking up which of your services took port 8080 today.
 
 Add the dependency, start the app, and it is reachable at `https://<app-name>.localhost`.
