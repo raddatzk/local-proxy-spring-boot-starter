@@ -22,9 +22,10 @@ The port is whatever the OS handed out — you never see it and never type it.
 3. The route carries a stable `@id`, so a restart replaces it instead of piling up duplicates,
    and shutdown removes it again.
 
-Any Caddy works: a plain `caddy run`, [localias](https://github.com/peterldowns/localias),
-or whatever else is already listening. Out of the box the starter expects Caddy on
-8080 / 8443, which needs no `sudo` — see [Caddy on other ports](#caddy-on-other-ports).
+Any Caddy works, as long as the starter knows which ports it listens on. Out of the box it
+expects 8080 / 8443 — above 1024, so no `sudo` anywhere. A Caddy on 80 / 443, which is what
+[localias](https://github.com/peterldowns/localias) runs, needs two lines of configuration:
+see [Caddy on other ports](#caddy-on-other-ports).
 
 ## Setup
 
@@ -140,8 +141,9 @@ use one: Caddy decides whether a server is plain HTTP by comparing its listen po
 Caddy will try to speak TLS on it.
 
 The one case the starter cannot read back is Caddy on the privileged **80 / 443**: Caddy
-omits both keys when they are at their own defaults, so there is nothing to read. Say so
-explicitly:
+omits both keys when they are at their own defaults, so there is nothing to read. This is
+the setup [localias](https://github.com/peterldowns/localias) gives you — it binds 80 / 443
+and does not let you change that. Say so explicitly:
 
 ```yaml
 local:
