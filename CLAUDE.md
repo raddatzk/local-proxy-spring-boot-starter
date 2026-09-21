@@ -75,6 +75,9 @@ Checked against Caddy 2.6.2 via its admin API:
 - A Caddyfile with only global options creates no servers. At least one site block per port
   is required, or `findServer` returns null.
 - `caddy reload` replaces the whole config and drops all registered routes.
+- With `local_certs`, Caddy installs its root CA into the system trust store on first use
+  and prompts for a password there. `caddy trust` is only the fallback for when that
+  automatic install cannot work — not a required setup step.
 
 ## Known gaps
 

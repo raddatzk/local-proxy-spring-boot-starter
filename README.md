@@ -109,15 +109,19 @@ block per port. A Caddyfile with only global options creates no servers at all.
 ```bash
 brew install caddy
 caddy run --config examples/Caddyfile
-caddy trust                              # once, adds the local CA to the system store
 ```
+
+`local_certs` makes Caddy generate its own CA, and it installs that root into the system
+trust store the first time it needs it — so the first run asks for your password once. No
+`caddy trust` needed; that command exists for when the automatic install cannot work,
+e.g. a server running unprivileged under systemd.
 
 `caddy reload` replaces the whole config and drops every route services registered —
 they reappear on the next service restart. `caddy run --resume` restores the last
 autosaved config, routes included.
 
-Firefox keeps its own certificate store: install `nss` and re-run `caddy trust`, or set
-`security.enterprise_roots.enabled` to `true`.
+Firefox keeps its own certificate store and is not covered by that install: `brew install
+nss` and start Caddy again, or set `security.enterprise_roots.enabled` to `true`.
 
 ## Caddy on other ports
 
