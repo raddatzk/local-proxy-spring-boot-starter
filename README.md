@@ -22,10 +22,10 @@ The port is whatever the OS handed out — you never see it and never type it.
 3. The route carries a stable `@id`, so a restart replaces it instead of piling up duplicates,
    and shutdown removes it again.
 
-Any Caddy works, as long as the starter knows which ports it listens on. Out of the box it
-expects 8080 / 8443 — above 1024, so no `sudo` anywhere. A Caddy on 80 / 443, which is what
-[localias](https://github.com/peterldowns/localias) runs, needs two lines of configuration:
-see [Caddy on other ports](#caddy-on-other-ports).
+Any Caddy works, as long as its admin API is reachable and the starter knows which ports it
+listens on. Out of the box it expects 8080 / 8443 — above 1024, so no `sudo` anywhere. A
+Caddy on 80 / 443 needs two lines of configuration: see
+[Caddy on other ports](#caddy-on-other-ports).
 
 ## Setup
 
@@ -141,9 +141,8 @@ use one: Caddy decides whether a server is plain HTTP by comparing its listen po
 Caddy will try to speak TLS on it.
 
 The one case the starter cannot read back is Caddy on the privileged **80 / 443**: Caddy
-omits both keys when they are at their own defaults, so there is nothing to read. This is
-the setup [localias](https://github.com/peterldowns/localias) gives you — it binds 80 / 443
-and does not let you change that. Say so explicitly:
+omits both keys when they are at their own defaults, so there is nothing to read. Say so
+explicitly:
 
 ```yaml
 local:
@@ -164,10 +163,11 @@ application starts normally. Nothing throws.
 
 - **Actuator on a separate port** is ignored on purpose; only the main server is registered.
   Register the management port yourself if you want it.
-- **TLS for `.localhost`** needs Caddy's internal CA. `localias` sets `local_certs` globally,
-  which covers routes added later. With a hand-written Caddyfile, add `tls internal` or a
-  matching automation policy, otherwise Caddy will try ACME and fail for the new hostname.
-- **A custom TLD** (`.test`) needs DNS: localias or dnsmasq. `.localhost` needs nothing.
+- **TLS for `.localhost`** needs Caddy's internal CA. `local_certs` as a global option covers
+  routes added later; in a site block, `tls internal` does the same. Without either, Caddy
+  tries ACME and fails for the new hostname.
+- **A custom TLD** (`.test`) needs something to resolve it, e.g. dnsmasq. `.localhost` needs
+  nothing.
 - **Service-to-service calls** still go to `localhost:<random>` unless the caller resolves
   through the proxy too. If your services talk to each other a lot, Docker Compose with
   Traefik labels and real service names is the better fit.

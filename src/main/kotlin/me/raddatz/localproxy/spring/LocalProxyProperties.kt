@@ -25,7 +25,7 @@ data class LocalProxyProperties(
     /**
      * TLD used when [host] is not set. `localhost` resolves to 127.0.0.1 without any
      * hosts-file entry on current macOS, Linux and Windows. Use `test` only if you run
-     * something that manages DNS for it (localias, dnsmasq).
+     * something that manages DNS for it, e.g. dnsmasq.
      */
     val tld: String = "localhost",
 
@@ -54,7 +54,7 @@ data class LocalProxyProperties(
     }
 
     data class Caddy(
-        /** Caddy's admin endpoint. Localias, Portless and a plain `caddy run` all use this default. */
+        /** Caddy's admin endpoint. This is Caddy's own default; a plain `caddy run` needs no change. */
         val adminUrl: URI = URI.create("http://localhost:2019"),
 
         /**
