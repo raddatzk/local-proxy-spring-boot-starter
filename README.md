@@ -16,8 +16,9 @@ The port is whatever the OS handed out — you never see it and never type it.
 
 1. `server.port=0` lets the kernel pick a free port. The application binds it immediately,
    so unlike "find a free port, then start", there is no window for another process to take it.
-2. On `WebServerInitializedEvent` the real port is known. The starter POSTs a
-   `reverse_proxy` route to Caddy's admin API, matching the hostname and dialling `127.0.0.1:<port>`.
+2. On `WebServerInitializedEvent` the real port is known. The starter inserts a
+   `reverse_proxy` route at the front of the server's route list via Caddy's admin API,
+   matching the hostname and dialling `127.0.0.1:<port>`.
 3. The route carries a stable `@id`, so a restart replaces it instead of piling up duplicates,
    and shutdown removes it again.
 
@@ -65,6 +66,7 @@ on current macOS, Linux and Windows.
 | `local.proxy.caddy.admin-url` | `http://localhost:2019` | |
 | `local.proxy.schemes` | `https` | `https`, `http`, or both |
 | `local.proxy.caddy.servers` | *(auto)* | Server key per scheme, e.g. `https: srv0`. Discovered via listener port |
+| `local.proxy.caddy.ports` | *(auto)* | Listen port per scheme. Read from Caddy's `http_port` / `https_port` |
 
 The hostname defaults to `<spring.application.name>.<tld>`, slugified:
 `Order Service` becomes `order-service.localhost`.
@@ -97,6 +99,44 @@ Under `.localhost` you keep secure-context APIs (service workers, `crypto.subtle
 even over plain http, because browsers treat `*.localhost` as trustworthy. Under a custom TLD
 like `.test` you lose them, and `Secure` cookies stop working. That is the main reason the
 default is https.
+
+## Running Caddy
+
+The starter attaches routes to an **existing** server, so Caddy needs at least one site
+block per port. A Caddyfile with only global options creates no servers at all.
+[`examples/Caddyfile`](examples/Caddyfile) is a working starting point:
+
+```bash
+brew install caddy
+caddy run --config examples/Caddyfile
+caddy trust                              # once, adds the local CA to the system store
+```
+
+`caddy reload` replaces the whole config and drops every route services registered —
+they reappear on the next service restart. `caddy run --resume` restores the last
+autosaved config, routes included.
+
+Firefox keeps its own certificate store: install `nss` and re-run `caddy trust`, or set
+`security.enterprise_roots.enabled` to `true`.
+
+## Caddy on other ports
+
+Set the ports in Caddy, not in the app — the starter reads them back:
+
+```
+{
+    http_port  8080
+    https_port 8443
+    local_certs
+}
+```
+
+The log then prints `https://order-service.localhost:8443`. Above 1024 Caddy needs no
+`sudo`, which is the main reason to do this.
+
+Set **both** values, even if you only use one. Caddy decides whether a server is plain HTTP
+by comparing its listen port against `http_port`. A server on :8080 with `http_port` left at
+80 counts as an HTTPS server, and Caddy will try to speak TLS on it.
 
 ## Failure behaviour
 

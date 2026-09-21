@@ -1,0 +1,22 @@
+# Minimal Caddy setup for local-proxy-spring-boot-starter.
+#
+#   caddy run --config examples/Caddyfile
+#   caddy trust        # once, to trust the local CA
+#
+# Services register themselves on startup and are placed in front of the
+# catch-all routes below.
+{
+	http_port 8080
+	https_port 8443
+	local_certs
+}
+
+# Creates the HTTPS server services attach to.
+https://*.localhost {
+	respond "No service registered for {host}" 502
+}
+
+# Only needed for local.proxy.schemes: http
+http:// {
+	respond "No service registered for {host}" 502
+}

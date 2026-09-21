@@ -33,16 +33,16 @@ data class LocalProxyProperties(
      * Which of Caddy's listeners to register with. Both is legal — the app is then
      * reachable over http and https under the same hostname.
      */
-    val schemes: Set<Scheme> = setOf(Scheme.HTTP, Scheme.HTTPS),
+    val schemes: Set<Scheme> = setOf(Scheme.HTTPS),
 
     /** Connect and read timeout for every call to the Caddy admin API. */
     val timeout: Duration = Duration.ofSeconds(2),
 
     val caddy: Caddy = Caddy(),
 ) {
-    enum class Scheme(val listenPort: Int) {
-        HTTP(80),
-        HTTPS(443);
+    enum class Scheme(val defaultPort: Int, internal val caddyPortKey: String) {
+        HTTP(80, "http_port"),
+        HTTPS(443, "https_port");
 
         val urlPrefix: String get() = name.lowercase() + "://"
     }
@@ -56,5 +56,11 @@ data class LocalProxyProperties(
          * Anything not listed here is discovered from the listener ports.
          */
         val servers: Map<Scheme, String> = emptyMap(),
+
+        /**
+         * Ports Caddy listens on, per scheme. When unset, read from Caddy's own
+         * `http_port` / `https_port` settings, falling back to 80 / 443.
+         */
+        val ports: Map<Scheme, Int> = emptyMap(),
     )
 }

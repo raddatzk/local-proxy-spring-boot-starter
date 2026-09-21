@@ -32,8 +32,8 @@ class LocalProxyRegistrarIT {
 
     @Test
     fun `registers the running port with Caddy`() {
-        val body = requests["POST /config/apps/http/servers/srv0/routes/0"]?.single()
-        assertTrue(body != null, "no route was posted to Caddy")
+        val body = StubCaddy.requests["PUT /config/apps/http/servers/srv0/routes/0"]?.single()
+        assertTrue(body != null, "no route was inserted into Caddy")
 
         assertContains(body, """"@id":"local-proxy-https-order-service.localhost"""")
         assertContains(body, """"order-service.localhost"""")
@@ -44,7 +44,7 @@ class LocalProxyRegistrarIT {
     fun `removes the route on shutdown`() {
         registrar.destroy()
         assertTrue(
-            requests.keys.any {
+            StubCaddy.requests.keys.any {
                 it == "DELETE /id/local-proxy-https-order-service.localhost"
             },
             "route should be deleted",
@@ -69,8 +69,9 @@ class LocalProxyRegistrarIT {
             }
             server.createContext("/id/") { exchange ->
                 record(exchange)
-                // Nothing is known yet, so PATCH always misses and the client falls back to POST.
-                val status = if (exchange.requestMethod == "PATCH") 500 else 200
+                // Nothing is known yet, so PATCH misses (404, like real Caddy) and the
+                // client falls back to inserting the route via PUT.
+                val status = if (exchange.requestMethod == "PATCH") 404 else 200
                 respond(exchange, status, "")
             }
             server.start()

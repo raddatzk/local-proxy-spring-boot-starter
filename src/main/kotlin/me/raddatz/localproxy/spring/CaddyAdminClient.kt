@@ -26,9 +26,15 @@ class CaddyAdminClient(
         .followRedirects(HttpClient.Redirect.NEVER)
         .build()
 
-    /** True if the admin API answers at all. */
-    fun isReachable(): Boolean = runCatching { send("GET", "/config/", null).statusCode() < 500 }
-        .getOrDefault(false)
+    /**
+     * The port Caddy uses for [scheme], as set via `http_port` / `https_port` in its config.
+     * Caddy omits both when they are left at their defaults, so a missing value means 80 / 443.
+     */
+    fun listenPort(scheme: LocalProxyProperties.Scheme): Int {
+        val response = send("GET", "/config/apps/http/${scheme.caddyPortKey}", null)
+        if (response.statusCode() !in 200..299) return scheme.defaultPort
+        return response.body().trim().toIntOrNull() ?: scheme.defaultPort
+    }
 
     /**
      * Key of the server listening on [listenPort], e.g. 443 or 80.
@@ -48,7 +54,6 @@ class CaddyAdminClient(
         return null
     }
 
-
     /**
      * Creates the route, or replaces it if a route with this `@id` already exists.
      * Existing routes are never duplicated, so restarts are safe.
@@ -65,9 +70,11 @@ class CaddyAdminClient(
         if (patch.statusCode() in 200..299) return
 
         // No route with that id yet — insert it in front of everything else.
-        val post = send("POST", "/config/apps/http/servers/$serverKey/routes/0", json)
-        check(post.statusCode() in 200..299) {
-            "Caddy rejected the route (HTTP ${post.statusCode()}): ${post.body().take(300)}"
+        // Must be PUT: in Caddy's admin API, PUT on an array index inserts there,
+        // while POST always appends, which would put us behind any catch-all route.
+        val put = send("PUT", "/config/apps/http/servers/$serverKey/routes/0", json)
+        check(put.statusCode() in 200..299) {
+            "Caddy rejected the route (HTTP ${put.statusCode()}): ${put.body().take(300)}"
         }
     }
 

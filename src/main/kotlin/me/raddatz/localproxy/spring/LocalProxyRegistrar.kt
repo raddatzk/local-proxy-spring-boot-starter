@@ -48,21 +48,21 @@ class LocalProxyRegistrar(
     private fun register(scheme: Scheme, host: String, port: Int) {
         val routeId = routeId(scheme, host)
         try {
+            val listenPort = properties.caddy.ports[scheme] ?: client.listenPort(scheme)
             val serverKey = properties.caddy.servers[scheme]
-                ?: client.findServer(scheme.listenPort)
+                ?: client.findServer(listenPort)
                 ?: run {
                     log.warn(
                         "local-proxy: Caddy at {} has no server listening on :{}. " +
                             "App is reachable at http://localhost:{}",
-                        properties.caddy.adminUrl, scheme.listenPort, port,
+                        properties.caddy.adminUrl, listenPort, port,
                     )
                     return
                 }
 
-
             client.upsertRoute(serverKey, routeId, host, port)
             registeredRouteIds += routeId
-            log.info("local-proxy: {}{} -> 127.0.0.1:{}", scheme.urlPrefix, host, port)
+            log.info("local-proxy: {} -> 127.0.0.1:{}", url(scheme, host, listenPort), port)
         } catch (ex: Exception) {
             log.warn(
                 "local-proxy: could not register {}{} with Caddy at {} ({}). " +
@@ -80,6 +80,10 @@ class LocalProxyRegistrar(
                 .onFailure { log.debug("local-proxy: could not remove route {}", routeId, it) }
         }
     }
+
+    /** Omits the port when it is the scheme's default, like a browser would. */
+    private fun url(scheme: Scheme, host: String, listenPort: Int): String =
+        scheme.urlPrefix + host + if (listenPort == scheme.defaultPort) "" else ":$listenPort"
 
     private fun routeId(scheme: Scheme, host: String) =
         "local-proxy-${scheme.name.lowercase()}-$host"
