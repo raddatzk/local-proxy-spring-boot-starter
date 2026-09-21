@@ -28,7 +28,8 @@ class CaddyAdminClient(
 
     /**
      * The port Caddy uses for [scheme], as set via `http_port` / `https_port` in its config.
-     * Caddy omits both when they are left at their defaults, so a missing value means 80 / 443.
+     * Caddy omits both when they are left at 80 / 443; a missing value therefore falls back
+     * to [LocalProxyProperties.Scheme.defaultPort], which assumes the unprivileged setup.
      */
     fun listenPort(scheme: LocalProxyProperties.Scheme): Int {
         val response = send("GET", "/config/apps/http/${scheme.caddyPortKey}", null)

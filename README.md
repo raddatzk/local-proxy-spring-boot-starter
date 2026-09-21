@@ -23,7 +23,8 @@ The port is whatever the OS handed out — you never see it and never type it.
    and shutdown removes it again.
 
 Any Caddy works: a plain `caddy run`, [localias](https://github.com/peterldowns/localias),
-or whatever else is already listening on 443.
+or whatever else is already listening. Out of the box the starter expects Caddy on
+8080 / 8443, which needs no `sudo` — see [Caddy on other ports](#caddy-on-other-ports).
 
 ## Setup
 
@@ -64,9 +65,9 @@ on current macOS, Linux and Windows.
 | `local.proxy.tld` | `localhost` | Used when `host` is unset |
 | `local.proxy.timeout` | `2s` | Per call to the admin API |
 | `local.proxy.caddy.admin-url` | `http://localhost:2019` | |
-| `local.proxy.schemes` | `https` | `https`, `http`, or both |
+| `local.proxy.schemes` | `http, https` | Register with one listener or both |
 | `local.proxy.caddy.servers` | *(auto)* | Server key per scheme, e.g. `https: srv0`. Discovered via listener port |
-| `local.proxy.caddy.ports` | *(auto)* | Listen port per scheme. Read from Caddy's `http_port` / `https_port` |
+| `local.proxy.caddy.ports` | *(auto)* | Listen port per scheme. Read from Caddy's `http_port` / `https_port`, else 8080 / 8443 |
 
 The hostname defaults to `<spring.application.name>.<tld>`, slugified:
 `Order Service` becomes `order-service.localhost`.
@@ -74,31 +75,29 @@ The hostname defaults to `<spring.application.name>.<tld>`, slugified:
 Subdomains work by setting `host` directly — `api.shop.localhost` and `docs.shop.localhost`
 can be two separate services.
 
-## http instead of https
+## One scheme only
+
+Both listeners are registered by default, so the hostname works over http and https. Narrow
+it if you only want one:
 
 ```yaml
 local:
   proxy:
-    schemes: http          # or: [http, https]
+    schemes: https         # or: http
 ```
-
-The route then goes into the server listening on :80 and the log prints `http://...`.
 
 No `automatic_https` surgery is needed either way:
 
 - **`schemes: http`** — Caddy skips automatic HTTPS entirely for a server that listens only
   on the HTTP port, so no redirect is ever generated for your hostname.
-- **`schemes: [http, https]`** — the hostname now lives in the :443 server too and does
-  qualify, so Caddy adds a redirect on :80. Redirect routes are inserted *after* routes that
+- **both** (the default) — the hostname lives in the HTTPS server too and does qualify, so
+  Caddy adds a redirect on the HTTP port. Redirect routes are inserted *after* routes that
   carry a host matcher, and ours is a host-matched `terminal` route at index 0, so it still wins.
-
-Note that port 80 is privileged just like 443, so this saves you no `sudo` — only the
-certificate.
 
 Under `.localhost` you keep secure-context APIs (service workers, `crypto.subtle`, clipboard)
 even over plain http, because browsers treat `*.localhost` as trustworthy. Under a custom TLD
-like `.test` you lose them, and `Secure` cookies stop working. That is the main reason the
-default is https.
+like `.test` you lose them, and `Secure` cookies stop working. That is the main reason https
+is in the default set.
 
 ## Running Caddy
 
@@ -121,7 +120,8 @@ Firefox keeps its own certificate store: install `nss` and re-run `caddy trust`,
 
 ## Caddy on other ports
 
-Set the ports in Caddy, not in the app — the starter reads them back:
+The starter assumes 8080 / 8443 — above 1024, so Caddy needs no `sudo`. That matches
+[`examples/Caddyfile`](examples/Caddyfile):
 
 ```
 {
@@ -131,12 +131,26 @@ Set the ports in Caddy, not in the app — the starter reads them back:
 }
 ```
 
-The log then prints `https://order-service.localhost:8443`. Above 1024 Caddy needs no
-`sudo`, which is the main reason to do this.
+The log then prints `https://order-service.localhost:8443`.
 
-Set **both** values, even if you only use one. Caddy decides whether a server is plain HTTP
-by comparing its listen port against `http_port`. A server on :8080 with `http_port` left at
-80 counts as an HTTPS server, and Caddy will try to speak TLS on it.
+For any other pair, set the ports in Caddy, not in the app — the starter reads `http_port`
+and `https_port` back and finds the matching server. Set **both** values, even if you only
+use one: Caddy decides whether a server is plain HTTP by comparing its listen port against
+`http_port`, so a server on :8080 with `http_port` left at 80 counts as an HTTPS server and
+Caddy will try to speak TLS on it.
+
+The one case the starter cannot read back is Caddy on the privileged **80 / 443**: Caddy
+omits both keys when they are at their own defaults, so there is nothing to read. Say so
+explicitly:
+
+```yaml
+local:
+  proxy:
+    caddy:
+      ports:
+        http: 80
+        https: 443
+```
 
 ## Failure behaviour
 

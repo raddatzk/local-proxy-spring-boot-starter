@@ -15,8 +15,11 @@ import kotlin.test.assertContains
 import kotlin.test.assertTrue
 
 /**
- * Boots a real web server on a random port and checks that the route Caddy receives
- * points at exactly that port.
+ * Boots a real web server on a random port and checks that the routes Caddy receives
+ * point at exactly that port — one per scheme, both by default.
+ *
+ * The stub reports `http_port` / `https_port` as 8080 / 8443 and names its servers the way
+ * a real Caddy does with `examples/Caddyfile`: `srv0` is the HTTP one, `srv1` the HTTPS one.
  */
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -32,8 +35,8 @@ class LocalProxyRegistrarIT {
 
     @Test
     fun `registers the running port with Caddy`() {
-        val body = StubCaddy.requests["PUT /config/apps/http/servers/srv0/routes/0"]?.single()
-        assertTrue(body != null, "no route was inserted into Caddy")
+        val body = StubCaddy.requests["PUT /config/apps/http/servers/srv1/routes/0"]?.single()
+        assertTrue(body != null, "no https route was inserted into Caddy")
 
         assertContains(body, """"@id":"local-proxy-https-order-service.localhost"""")
         assertContains(body, """"order-service.localhost"""")
@@ -41,14 +44,30 @@ class LocalProxyRegistrarIT {
     }
 
     @Test
-    fun `removes the route on shutdown`() {
+    fun `registers both schemes by default`() {
+        val body = StubCaddy.requests["PUT /config/apps/http/servers/srv0/routes/0"]?.single()
+        assertTrue(body != null, "no http route was inserted into Caddy")
+
+        assertContains(body, """"@id":"local-proxy-http-order-service.localhost"""")
+        assertContains(body, """"dial":"127.0.0.1:$port"""")
+    }
+
+    @Test
+    fun `reads the listen ports from Caddy`() {
+        // Both are asked for, and the servers found are the ones on those ports.
+        assertTrue("GET /config/apps/http/https_port" in StubCaddy.requests.keys)
+        assertTrue("GET /config/apps/http/http_port" in StubCaddy.requests.keys)
+    }
+
+    @Test
+    fun `removes the routes on shutdown`() {
         registrar.destroy()
-        assertTrue(
-            StubCaddy.requests.keys.any {
-                it == "DELETE /id/local-proxy-https-order-service.localhost"
-            },
-            "route should be deleted",
-        )
+        listOf("https", "http").forEach { scheme ->
+            assertTrue(
+                "DELETE /id/local-proxy-$scheme-order-service.localhost" in StubCaddy.requests.keys,
+                "$scheme route should be deleted",
+            )
+        }
     }
 
     @SpringBootApplication
@@ -62,9 +81,18 @@ class LocalProxyRegistrarIT {
             server.createContext("/config/apps/http/servers/") { exchange ->
                 record(exchange)
                 if (exchange.requestMethod == "GET") {
-                    respond(exchange, 200, """{"srv0":{"listen":[":443"]},"srv1":{"listen":[":80"]}}""")
+                    respond(exchange, 200, """{"srv0":{"listen":[":8080"]},"srv1":{"listen":[":8443"]}}""")
                 } else {
                     respond(exchange, 200, "")
+                }
+            }
+            // Caddy exposes these only when they are set explicitly; 404 otherwise.
+            server.createContext("/config/apps/http/") { exchange ->
+                record(exchange)
+                when (exchange.requestURI.path.substringAfterLast('/')) {
+                    "http_port" -> respond(exchange, 200, "8080")
+                    "https_port" -> respond(exchange, 200, "8443")
+                    else -> respond(exchange, 404, "")
                 }
             }
             server.createContext("/id/") { exchange ->

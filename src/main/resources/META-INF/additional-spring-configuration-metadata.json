@@ -33,7 +33,7 @@
       "name": "local.proxy.schemes",
       "type": "java.util.Set<me.raddatz.localproxy.spring.LocalProxyProperties$Scheme>",
       "description": "Which Caddy listeners to register with: https, http, or both.",
-      "defaultValue": ["https"]
+      "defaultValue": ["http", "https"]
     },
     {
       "name": "local.proxy.caddy.servers",
@@ -43,7 +43,7 @@
     {
       "name": "local.proxy.caddy.ports",
       "type": "java.util.Map<me.raddatz.localproxy.spring.LocalProxyProperties$Scheme,java.lang.Integer>",
-      "description": "Ports Caddy listens on per scheme. Read from Caddy's http_port/https_port when unset."
+      "description": "Ports Caddy listens on per scheme. Read from Caddy's http_port/https_port when unset, falling back to 8080/8443."
     }
   ]
 }

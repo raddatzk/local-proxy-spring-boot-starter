@@ -34,7 +34,7 @@ curl -s localhost:2019/config/apps/http/servers/ | jq 'map_values(.listen)'
 2. `WebServerInitializedEvent` → real port known. Events with a non-null `serverNamespace`
    (e.g. actuator on a management port) are ignored.
 3. For each configured scheme: port = `local.proxy.caddy.ports[scheme]` ?: Caddy's
-   `http_port`/`https_port` ?: 80/443. Server = `local.proxy.caddy.servers[scheme]` ?: the
+   `http_port`/`https_port` ?: 8080/8443. Server = `local.proxy.caddy.servers[scheme]` ?: the
    server whose `listen` ends in `:<port>`. No match → WARN and skip, never guess.
 4. `PATCH /id/<routeId>` to update an existing route; on non-2xx, `PUT .../routes/0` to insert.
 5. `destroy()` → `DELETE /id/<routeId>` for every registered route.
@@ -64,7 +64,9 @@ Checked against Caddy 2.6.2 via its admin API:
 - `DELETE /id/<id>` removes the route.
 - Server keys (`srv0`, `srv1`) are **not** ordered by port. With `examples/Caddyfile`,
   `srv0` is HTTP :8080 and `srv1` is HTTPS :8443.
-- `http_port` / `https_port` are omitted from the config when left at 80 / 443.
+- `http_port` / `https_port` are omitted from the config when left at 80 / 443. Since
+  `Scheme.defaultPort` assumes 8080 / 8443, a Caddy on the privileged ports reads back as
+  "no server found" — `local.proxy.caddy.ports` has to name 80 / 443 explicitly.
 - A server that listens only on `http_port` gets no automatic HTTPS at all — no certs, no
   redirects. That is why `http_port` must match the real HTTP listener; otherwise Caddy
   treats it as an HTTPS server and speaks TLS on it.
@@ -79,4 +81,3 @@ Checked against Caddy 2.6.2 via its admin API:
 - Only a stubbed integration test (`LocalProxyRegistrarIT`). The stub does not model route
   order, which is how the POST/PUT bug slipped past it. A Testcontainers test against a real
   Caddy image would close that gap.
-- No test yet for non-default Caddy ports (`listenPort` reading `https_port`).

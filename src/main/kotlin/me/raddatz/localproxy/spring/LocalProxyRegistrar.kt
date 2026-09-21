@@ -81,9 +81,9 @@ class LocalProxyRegistrar(
         }
     }
 
-    /** Omits the port when it is the scheme's default, like a browser would. */
+    /** Omits the port only when a browser would assume it anyway — never :8443. */
     private fun url(scheme: Scheme, host: String, listenPort: Int): String =
-        scheme.urlPrefix + host + if (listenPort == scheme.defaultPort) "" else ":$listenPort"
+        scheme.urlPrefix + host + if (listenPort == scheme.implicitUrlPort) "" else ":$listenPort"
 
     private fun routeId(scheme: Scheme, host: String) =
         "local-proxy-${scheme.name.lowercase()}-$host"

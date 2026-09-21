@@ -16,7 +16,7 @@ https://*.localhost {
 	respond "No service registered for {host}" 502
 }
 
-# Only needed for local.proxy.schemes: http
+# Both listeners are registered by default, so this one is needed too.
 http:// {
 	respond "No service registered for {host}" 502
 }
