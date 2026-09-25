@@ -3,6 +3,7 @@ package me.raddatz.localproxy.spring
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.json.JsonMapper
 import java.net.URI
 import java.net.URLEncoder
 import java.net.http.HttpClient
@@ -18,7 +19,7 @@ import java.time.Duration
 class CaddyAdminClient(
     private val adminUrl: URI,
     private val timeout: Duration,
-    private val mapper: ObjectMapper = ObjectMapper(),
+    private val mapper: JsonMapper = JsonMapper(),
 ) {
 
     private val http: HttpClient = HttpClient.newBuilder()
@@ -49,7 +50,7 @@ class CaddyAdminClient(
         val servers = mapper.readTree(body)
         if (!servers.isObject || servers.isEmpty) return null
 
-        servers.fields().forEach { (key, server) ->
+        servers.properties().forEach { (key, server) ->
             if (server.path("listen").any { it.asText().endsWith(":$listenPort") }) return key
         }
         return null

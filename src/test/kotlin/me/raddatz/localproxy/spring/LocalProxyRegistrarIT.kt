@@ -23,7 +23,7 @@ import kotlin.test.assertTrue
  */
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = ["spring.application.name=Order Service"],
+    properties = ["spring.application.name=Order Service", "local.proxy.enabled=true"],
 )
 class LocalProxyRegistrarIT {
 

@@ -1,5 +1,6 @@
 package me.raddatz.localproxy.spring
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner
@@ -14,23 +15,23 @@ class LocalProxyAutoConfigurationTest {
     @Test
     fun `is active by default in a web application`() {
         runner.run { context ->
-            assertTrue(context.containsBean("localProxyRegistrar"))
+            assertThat(context.containsBean("localProxyRegistrar")).isFalse
         }
     }
 
     @Test
-    fun `can be switched off`() {
-        runner.withPropertyValues("local.proxy.enabled=false").run { context ->
-            assertFalse(context.containsBean("localProxyRegistrar"))
+    fun `can be turned on`() {
+        runner.withPropertyValues("local.proxy.enabled=true").run { context ->
+            assertThat(context.containsBean("localProxyRegistrar")).isTrue
         }
     }
 
     @Test
     fun `derives the hostname from the application name`() {
-        runner.withPropertyValues("spring.application.name=Order Service").run { context ->
+        runner.withPropertyValues("spring.application.name=Order Service", "local.proxy.enabled=true").run { context ->
             val properties = context.getBean(LocalProxyProperties::class.java)
-            assertTrue(properties.host == null)
-            assertTrue(properties.tld == "localhost")
+            assertThat(properties.host == null).isTrue
+            assertThat(properties.tld == "localhost").isTrue
         }
     }
 }
