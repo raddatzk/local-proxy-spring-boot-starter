@@ -104,3 +104,19 @@ jobs:
         run: |
           gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA" > /dev/null
           echo "Tagged $GITHUB_SHA as $TAG"
+
+  finalize:
+    # This job runs even if the publish job fails, so the workflow shows as
+    # failed but the version is still marked as released. It also runs if the
+    # tag job fails, which is less likely but possible if the tag already
+    # exists (e.g. a previous run was cancelled after publishing).
+    needs: [publish, tag]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Mark the version as released
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: v${{ needs.publish.outputs.version }}
+        run: |
+          echo "Releasing $VERSION" >> $GITHUB_STEP_SUMMARY
