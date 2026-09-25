@@ -3,7 +3,7 @@ package me.raddatz.localproxy.spring
 import me.raddatz.localproxy.spring.LocalProxyProperties.Scheme
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.DisposableBean
-import org.springframework.boot.web.context.WebServerInitializedEvent
+import org.springframework.boot.web.server.context.WebServerInitializedEvent
 import org.springframework.context.ApplicationListener
 import java.util.concurrent.CopyOnWriteArrayList
 

@@ -25,13 +25,13 @@ repositories {
     mavenCentral()
 }
 
-val springBootVersion = "3.5.0"
+val springBootVersion = "4.1.0"
 val kotlinVersion = "2.2.21"
 
 dependencies {
-    api(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
 
-    api("org.springframework.boot:spring-boot-autoconfigure")
+    implementation("org.springframework.boot:spring-boot-starter-web")
     // Explicit version: the Spring Boot BOM still pins Kotlin 2.1.x.
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
     implementation("org.slf4j:slf4j-api")

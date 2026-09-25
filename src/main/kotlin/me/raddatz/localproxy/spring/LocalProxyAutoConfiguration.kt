@@ -17,7 +17,6 @@ import org.springframework.core.env.Environment
     prefix = "local.proxy",
     name = ["enabled"],
     havingValue = "true",
-    matchIfMissing = true,
 )
 @EnableConfigurationProperties(LocalProxyProperties::class)
 class LocalProxyAutoConfiguration {

@@ -14,7 +14,7 @@ import java.time.Duration
 data class LocalProxyProperties(
 
     /** Set to false to disable registration without removing the dependency. */
-    val enabled: Boolean = true,
+    val enabled: Boolean = false,
 
     /**
      * Full hostname to register, e.g. `api.shop.localhost`.
