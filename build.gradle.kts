@@ -26,6 +26,10 @@ repositories {
     mavenCentral()
 }
 
+java {
+    withSourcesJar()
+}
+
 val springBootVersion = "4.1.0"
 val kotlinVersion = "2.2.21"
 
