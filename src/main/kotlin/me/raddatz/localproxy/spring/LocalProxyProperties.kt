@@ -1,6 +1,7 @@
 package me.raddatz.localproxy.spring
 
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.bind.DefaultValue
 import java.net.URI
 import java.time.Duration
 
@@ -14,20 +15,20 @@ import java.time.Duration
 data class LocalProxyProperties(
 
     /** Set to false to disable registration without removing the dependency. */
-    val enabled: Boolean = false,
+    @DefaultValue("false") val enabled: Boolean,
 
     /**
      * Full hostname to register, e.g. `api.shop.localhost`.
      * Defaults to `<spring.application.name>.<tld>`.
      */
-    val host: String? = null,
+    val host: String?,
 
     /**
      * TLD used when [host] is not set. `localhost` resolves to 127.0.0.1 without any
      * hosts-file entry on current macOS, Linux and Windows. Use `test` only if you run
      * something that manages DNS for it, e.g. dnsmasq.
      */
-    val tld: String = "localhost",
+    @DefaultValue("localhost") val tld: String,
 
     /**
      * Which of Caddy's listeners to register with. Both by default — the app is then
@@ -38,7 +39,7 @@ data class LocalProxyProperties(
     /** Connect and read timeout for every call to the Caddy admin API. */
     val timeout: Duration = Duration.ofSeconds(2),
 
-    val caddy: Caddy = Caddy(),
+    @DefaultValue val caddy: Caddy,
 ) {
     enum class Scheme(
         /** Assumed listen port when Caddy's config does not name one. */
@@ -55,7 +56,7 @@ data class LocalProxyProperties(
 
     data class Caddy(
         /** Caddy's admin endpoint. This is Caddy's own default; a plain `caddy run` needs no change. */
-        val adminUrl: URI = URI.create("http://localhost:2019"),
+        @DefaultValue("http://localhost:2019") val adminUrl: URI,
 
         /**
          * Server keys in Caddy's config, per scheme, e.g. `https: srv0`.

@@ -4,6 +4,7 @@ import com.vanniktech.maven.publish.KotlinJvm
 plugins {
     kotlin("jvm") version "2.2.21"
     kotlin("plugin.spring") version "2.2.21"
+    kotlin("kapt") version "2.2.21"
     `java-library`
     id("org.jetbrains.dokka") version "2.2.0"
     id("com.vanniktech.maven.publish") version "0.37.0"
@@ -30,8 +31,12 @@ val kotlinVersion = "2.2.21"
 
 dependencies {
     implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+//    annotationProcessor(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+    kapt(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")
+//    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    kapt("org.springframework.boot:spring-boot-configuration-processor")
     // Explicit version: the Spring Boot BOM still pins Kotlin 2.1.x.
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
     implementation("org.slf4j:slf4j-api")
