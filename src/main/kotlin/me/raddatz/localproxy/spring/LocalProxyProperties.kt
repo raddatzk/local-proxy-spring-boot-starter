@@ -34,10 +34,10 @@ data class LocalProxyProperties(
      * Which of Caddy's listeners to register with. Both by default — the app is then
      * reachable over http and https under the same hostname.
      */
-    val schemes: Set<Scheme> = setOf(Scheme.HTTP, Scheme.HTTPS),
+    @DefaultValue("HTTP, HTTPS") val schemes: Set<Scheme>,
 
     /** Connect and read timeout for every call to the Caddy admin API. */
-    val timeout: Duration = Duration.ofSeconds(2),
+    @DefaultValue("2s") val timeout: Duration,
 
     @DefaultValue val caddy: Caddy,
 ) {

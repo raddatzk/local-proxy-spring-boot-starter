@@ -33,6 +33,7 @@ Caddy on 80 / 443 needs two lines of configuration: see
 // build.gradle.kts of your service
 dependencies {
     developmentOnly("me.raddatz:local-proxy-spring-boot-starter:<version>")
+    compileOnly("me.raddatz:local-proxy-spring-boot-starter:<version>") // if you want to use completion in your application.yaml
 }
 ```
 

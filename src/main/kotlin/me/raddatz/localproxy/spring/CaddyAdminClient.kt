@@ -2,7 +2,6 @@ package me.raddatz.localproxy.spring
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.json.JsonMapper
 import java.net.URI
 import java.net.URLEncoder
